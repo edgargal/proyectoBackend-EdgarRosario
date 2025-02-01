@@ -5,19 +5,19 @@ const cartRouter = express.Router();
 const cartManager = new CartManager();
 
 //POST "/"
-router.post("/", (req, res) => {
+cartRouter.post("/", (req, res) => {
     const newCart = cartManager.createCart();
     res.status(201).json(newCart);
   });
 
 //GET "/:cid"
-router.get("/:cid", (req, res) => {
+cartRouter.get("/:cid", (req, res) => {
     const cart = cartManager.getCartById(parseInt(req.params.cid));
     if(!cart)res.json(cart).res.status(404).json({ error: "Carrito no encontrado" });
   });
 
 //POST "/:cid/product/:pid"
-router.post("/:cid/product/:pid", (req, res) => {
+cartRouter.post("/:cid/product/:pid", (req, res) => {
     const updatedCart = cartManager.addProductInCartById(parseInt(req.params.cid), parseInt(req.params.pid));
     if(!updatedCart)res.json(updatedCart).res.status(404).json({ error: "Carrito no encontrado" });
   });

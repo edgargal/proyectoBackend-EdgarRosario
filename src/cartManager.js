@@ -1,5 +1,5 @@
 import fs from "fs";
-import path from "./data/cart.json";
+const path = "./data/cart.json";
 
 class CartManager {
     constructor(){

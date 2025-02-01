@@ -1,5 +1,5 @@
 import fs from "fs";
-import pathFile from "./data/products.json";
+const pathFile = "./data/products.json";
 
 class ProductManager {
 
