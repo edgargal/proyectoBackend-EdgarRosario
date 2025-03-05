@@ -1,15 +1,19 @@
 import express from "express";
-import productsRouter from "./routes/product.router.js";
+import productsRouter from "./routes/product.router.js"
 import cartRouter from "./routes/cart.router.js";
 import { engine } from "express-handlebars";
 import { Server } from "socket.io";
 import http from "http";
 import viewsRouter from "./routes/views.router.js";
 import ProductManager from "./ProductManager.js";
+import connectDB from "./db/db.js";
+
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+const PORT = 8080;
+
 
 //handlebars
 app.engine("handlebars", engine());
@@ -17,11 +21,11 @@ app.set("view engine", "handlebars");
 app.set("views", "./src/views");
 
 
-const PORT = 8080;
-
 
 app.use(express.json());
 app.use(express.static("public"));
+
+connectDB();
 
 //endpoints
 app.use("/api/products", productsRouter);
