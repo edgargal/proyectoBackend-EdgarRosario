@@ -1,5 +1,7 @@
 import express from "express";
-import Product from "../models/product.js";  
+import productRepository from "../dao/repositories/ProductRepository.js";
+import { authorize } from "../middleware/autorizacion.js";
+import passport from "passport";
 
 const productsRouter = express.Router();
 
@@ -7,49 +9,37 @@ productsRouter.get("/", async (req, res) => {
   try {
     const { limit = 10, page = 1, sort, query } = req.query;
 
-    // Construccion del filtro
-    const filter = {};
-    if (query) {
-      filter.$or = [
-        { category: { $regex: query, $options: "i" } },  // Búsqueda flexible en categoría
-        { status: query.toLowerCase() === "true" }       // Filtrar por disponibilidad
-      ];
-    }
-
-    // Construcción de la consulta
-    const options = {
-      limit: parseInt(limit),
-      skip: (parseInt(page) - 1) * parseInt(limit),
-      sort: sort ? { price: sort === "asc" ? 1 : -1 } : {}  // Orden por precio
-    };
-
-    const totalProducts = await Product.countDocuments(filter);
-    const products = await Product.find(filter).sort(options.sort).skip(options.skip).limit(options.limit);
-
-    const totalPages = Math.ceil(totalProducts / options.limit);
+    const result = await productRepository.getProducts({
+      limit,
+      page,
+      sort,
+      query,
+    });
 
     res.status(200).json({
       status: "success",
-      payload: products,
-      totalPages,
-      prevPage: page > 1 ? parseInt(page) - 1 : null,
-      nextPage: page < totalPages ? parseInt(page) + 1 : null,
-      page: parseInt(page),
-      hasPrevPage: page > 1,
-      hasNextPage: page < totalPages,
-      prevLink: page > 1 ? `/api/products?limit=${limit}&page=${page - 1}&sort=${sort}&query=${query}` : null,
-      nextLink: page < totalPages ? `/api/products?limit=${limit}&page=${page + 1}&sort=${sort}&query=${query}` : null
+      payload: result.docs,
+      totalPages: result.totalPages,
+      prevPage: result.prevPage,
+      nextPage: result.nextPage,
+      page: result.page,
+      hasPrevPage: result.hasPrevPage,
+      hasNextPage: result.hasNextPage,
+      prevLink: result.hasPrevPage
+        ? `/api/products?limit=${limit}&page=${result.prevPage}&sort=${sort}&query=${query}`
+        : null,
+      nextLink: result.hasNextPage
+        ? `/api/products?limit=${limit}&page=${result.nextPage}&sort=${sort}&query=${query}`
+        : null,
     });
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// Obtener producto por ID
 productsRouter.get("/:pid", async (req, res) => {
   try {
-    const product = await Product.findById(req.params.pid);
+    const product = await productRepository.getProductById(req.params.pid);
     if (!product) {
       return res.status(404).json({ message: "Producto no encontrado" });
     }
@@ -59,21 +49,27 @@ productsRouter.get("/:pid", async (req, res) => {
   }
 });
 
-// Agregar un nuevo producto
-productsRouter.post("/", async (req, res) => {
-  try {
-    const newProduct = new Product(req.body);
-    await newProduct.save();
-    res.status(201).json(newProduct);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+productsRouter.post(
+  "/",
+  passport.authenticate("jwt", { session: false }),
 
-// Actualizar un producto existente
-productsRouter.put("/:pid", async (req, res) => {
+  authorize(["admin"]),
+  async (req, res) => {
+    try {
+      const newProduct = await productRepository.createProduct(req.body);
+      res.status(201).json(newProduct);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+productsRouter.put("/:pid", authorize(["admin"]), async (req, res) => {
   try {
-    const updatedProduct = await Product.findByIdAndUpdate(req.params.pid, req.body, { new: true });
+    const updatedProduct = await productRepository.updateProduct(
+      req.params.pid,
+      req.body
+    );
     if (!updatedProduct) {
       return res.status(404).json({ message: "Producto no encontrado" });
     }
@@ -83,11 +79,10 @@ productsRouter.put("/:pid", async (req, res) => {
   }
 });
 
-// Eliminar un producto por ID
-productsRouter.delete("/:pid", async (req, res) => {
+productsRouter.delete("/:pid", authorize(["admin"]), async (req, res) => {
   try {
-    const deletedProduct = await Product.findByIdAndDelete(req.params.pid);
-    if (!deletedProduct) {
+    const deleted = await productRepository.deleteProduct(req.params.pid);
+    if (!deleted) {
       return res.status(404).json({ message: "Producto no encontrado" });
     }
     res.status(200).json({ message: "Producto eliminado correctamente" });

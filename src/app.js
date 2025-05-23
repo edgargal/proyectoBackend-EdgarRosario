@@ -6,10 +6,11 @@ import { Server } from "socket.io";
 import http from "http";
 import viewsRouter from "./routes/views.router.js";
 import ProductManager from "./ProductManager.js";
-import connectDB from "./db/db.js";
+import connectDB from "./config/mongo.js";
 import sessionRouter from "./routes/sessions.router.js";
 import cookieParser from "cookie-parser";
 import passport from "passport";
+import "./middleware/passport.js";
 import "./config/passport.config.js";
 
 const app = express();
@@ -37,6 +38,10 @@ app.use("/api/sessions", sessionRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/carts", cartRouter);
 app.use("/", viewsRouter);
+
+app.get("/", (req, res) => {
+  res.send("Bienvenido a mi servidor Backend");
+});
 
 //websockets
 const productManager = new ProductManager("./src/data/products.json");

@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const connectDB = async () => {
   try {
     await mongoose.connect(
-      "mongodb+srv://coder:coderpass@ecommerce-cluster.8s8ee.mongodb.net/ecommerce?retryWrites=true&w=majority&appName=Ecommerce-cluster"
+      "mongodb+srv://felipe_99:281018@cluster0.pmbmkxz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
     );
     console.log("Conexión a MongoDB Atlas establecida");
   } catch (error) {

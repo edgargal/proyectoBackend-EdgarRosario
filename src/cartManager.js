@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Cart from "./models/Cart.js"
+import Cart from "./dao/models/cart.js";
 
 class CartManager {
   async createCart() {
@@ -25,7 +25,9 @@ class CartManager {
       const cart = await Cart.findById(cartId);
       if (!cart) throw new Error("Carrito no encontrado");
 
-      const existingProduct = cart.products.find((item) => item.product.equals(productId));
+      const existingProduct = cart.products.find((item) =>
+        item.product.equals(productId)
+      );
       if (existingProduct) {
         existingProduct.quantity += quantity;
       } else {
@@ -44,11 +46,15 @@ class CartManager {
       const cart = await Cart.findById(cartId);
       if (!cart) throw new Error("Carrito no encontrado");
 
-      cart.products = cart.products.filter((item) => !item.product.equals(productId));
+      cart.products = cart.products.filter(
+        (item) => !item.product.equals(productId)
+      );
       await cart.save();
       return cart;
     } catch (error) {
-      throw new Error("Error al eliminar producto del carrito: " + error.message);
+      throw new Error(
+        "Error al eliminar producto del carrito: " + error.message
+      );
     }
   }
 
@@ -57,14 +63,18 @@ class CartManager {
       const cart = await Cart.findById(cartId);
       if (!cart) throw new Error("Carrito no encontrado");
 
-      const product = cart.products.find((item) => item.product.equals(productId));
+      const product = cart.products.find((item) =>
+        item.product.equals(productId)
+      );
       if (!product) throw new Error("Producto no encontrado en el carrito");
 
       product.quantity = quantity;
       await cart.save();
       return cart;
     } catch (error) {
-      throw new Error("Error al actualizar cantidad de producto: " + error.message);
+      throw new Error(
+        "Error al actualizar cantidad de producto: " + error.message
+      );
     }
   }
 
@@ -77,7 +87,9 @@ class CartManager {
       await cart.save();
       return cart;
     } catch (error) {
-      throw new Error("Error al actualizar productos del carrito: " + error.message);
+      throw new Error(
+        "Error al actualizar productos del carrito: " + error.message
+      );
     }
   }
 

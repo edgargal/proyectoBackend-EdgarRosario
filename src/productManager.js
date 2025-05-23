@@ -1,4 +1,4 @@
-import Product from "./models/product.js";
+import Product from "./dao/models/product.js";
 
 class ProductManager {
   async addProduct(productData) {
@@ -35,7 +35,9 @@ class ProductManager {
 
   async updateProduct(productId, updateData) {
     try {
-      return await Product.findByIdAndUpdate(productId, updateData, { new: true });
+      return await Product.findByIdAndUpdate(productId, updateData, {
+        new: true,
+      });
     } catch (error) {
       throw new Error("Error al actualizar producto: " + error.message);
     }

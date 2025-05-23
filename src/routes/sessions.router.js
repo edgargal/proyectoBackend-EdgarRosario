@@ -1,6 +1,6 @@
 import { Router } from "express";
 import jwt from "jsonwebtoken";
-import User from "../models/user.js";
+import User from "../dao/models/user.js";
 import bcrypt from "bcrypt";
 import passport from "passport";
 
@@ -33,6 +33,7 @@ router.post("/register", async (req, res) => {
 });
 
 // LOGIN
+
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -44,13 +45,18 @@ router.post("/login", async (req, res) => {
     if (!passwordMatch)
       return res.status(401).json({ error: "Contraseña incorrecta" });
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    // Generar token con el role incluido
+    const token = jwt.sign(
+      { userId: user._id, role: user.role, email: user.email },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
 
     res
       .cookie("jwt", token, { httpOnly: true })
-      .json({ message: "Login exitoso" });
+      .json({ message: "Login exitoso", token });
   } catch (error) {
     res.status(500).json({ error: "Error al iniciar sesión" });
   }

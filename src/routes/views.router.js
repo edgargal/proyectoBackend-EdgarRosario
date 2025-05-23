@@ -1,9 +1,8 @@
 import express from "express";
-import Product from "../models/product.js";
-import Cart from "../models/Cart.js"; 
+import Product from "../dao/models/Product.js";
+import Cart from "../dao/models/cart.js";
 
 const router = express.Router();
-
 
 router.get("/products", async (req, res) => {
   try {
@@ -62,6 +61,5 @@ router.get("/carts/:cid", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
 
 export default router;
